@@ -12,54 +12,69 @@ from PIL import Image
 # Title
 
 
-#image = Image.open("D:/Tesis/dog.png")
+# image = Image.open("D:/Tesis/dog.png")
 
-#st.image(image, width=500)
+# st.image(image, width=500)
 
 st.title("Theory Information Cuantifiers")
 st.markdown(
     """
-This app retrieves currency prices from the **yahoo finance web API**
-"""
+This app retrieves currency prices from the **yahoo finance web API.**
+    """
 )
+
+
 # ---------------------------------#
 # About
-expander_bar = st.expander("About")
-expander_bar.markdown(
+
+st.markdown(
     """
 * **Python libraries:** streamlit, pandas, requests, numpy, matplotlib, seaborn, scipy.stats, ordpy, pillow
 * **Data source:** [Yahoo Finance API](https://cryptocointracker.com/yahoo-finance/yahoo-finance-api).
+* **References** [Shannon, 1948](https://people.math.harvard.edu/~ctm/home/text/others/shannon/entropy/entropy.pdf), [Band and Pompe, 2002](https://ri.conicet.gov.ar/handle/11336/99331).
 * **Carlos Ibáñez Acuña. -> GitHub https://github.com/cibaneza
-"""
+    """
 )
-
-
 # ---------------------------------#
+
+st.markdown(
+    """
+    ## Select your favorite stock! 
+    """
+)
 
 # Initial UI
 ticker = st.text_input("Ticker", "NFLX").upper()
-buttonClicked = st.button("Set")
+buttonClicked = st.button("Start")
 
 # Callbacks
+
+st.markdown(
+    """
+    ## Data main information
+    """
+)
+
 if buttonClicked:
-    # requestString = f"""https://query1.finance.yahoo.com/v10/...{ticker}?modules=assetProfile%2Cprice"""
-    # requestString = (
-    # f"""https://query1.finance.yahoo.com/v11/finance/quoteSummary/{ticker}"""
-    # )
-    requestString = f"""https://query1.finance.yahoo.com/v11/finance/quoteSummary/{ticker}?modules=assetProfile%2Cprice"""
-    request = requests.get(f"{requestString}", headers={"USER-AGENT": "Mozilla/5.0"})
-    json = request.json()
-    data = json["quoteSummary"]["result"][0]
+    try:
+        requestString = f"""https://query1.finance.yahoo.com/v11/finance/quoteSummary/{ticker}?modules=assetProfile%2Cprice"""
+        request = requests.get(
+            f"{requestString}", headers={"USER-AGENT": "Mozilla/5.0"}
+        )
+        json = request.json()
+        data = json["quoteSummary"]["result"][0]
 
-    st.header("Profile")
+        st.header("Profile")
 
-    st.metric("sector", data["assetProfile"]["sector"])
-    st.metric("industry", data["assetProfile"]["industry"])
-    st.metric("website", data["assetProfile"]["website"])
-    st.metric("marketCap", data["price"]["marketCap"]["fmt"])
+        st.metric("sector", data["assetProfile"]["sector"])
+        st.metric("industry", data["assetProfile"]["industry"])
+        st.metric("website", data["assetProfile"]["website"])
+        st.metric("marketCap", data["price"]["marketCap"]["fmt"])
 
-    with st.expander("About Company"):
-        st.write(data["assetProfile"]["longBusinessSummary"])
+        with st.expander("About Company"):
+            st.write(data["assetProfile"]["longBusinessSummary"])
+    except:
+        pass
 
 data = yf.download(ticker)
 # data.head(10)
@@ -67,7 +82,7 @@ data = yf.download(ticker)
 st.dataframe(data)
 
 
-@st.cache_data
+@st.cache_data(ttl=600)
 def convert_df(df):
     # IMPORTANT: Cache the conversion to prevent computation on every rerun
     return df.to_csv().encode("utf-8")
@@ -81,11 +96,33 @@ st.download_button(
     mime="text/csv",
 )
 
+
 # Plots
+st.markdown(
+    """
+    ### Adjusted Close Price
+    """
+)
 st.line_chart(data["Adj Close"])
+st.markdown(
+    """
+    ### Returns
+    """
+)
 st.line_chart(data["Adj Close"].pct_change())
+st.markdown(
+    """
+    ### Volume
+    """
+)
 st.line_chart(data["Volume"])
 
+
+st.markdown(
+    """
+    ## Fisher & Entropy
+    """
+)
 
 # Fisher & Shannon window
 
@@ -94,6 +131,13 @@ data_daily_returns = data["Adj Close"].pct_change()
 # We define the size of the window (250 days in our case, trying to emulate months continously)
 # window_size = 250
 # window_size = st.text_input("Window Size", "252").upper()
+
+st.markdown(
+    """
+    ### Select your Window Size!
+    """
+)
+
 window_size = st.number_input("Insert a Window Size", 252)
 
 st.text("Use 252 as 252 days window size")
@@ -135,8 +179,18 @@ df3.set_index("Date", inplace=True)
 
 st.dataframe(df3)
 
+st.markdown(
+    """
+    ### Fisher Information
+    """
+)
 st.line_chart(df3["Fisher Information"])
 
+st.markdown(
+    """
+    ### Shannon Entropy
+    """
+)
 st.line_chart(df3["Shannon Entropy"])
 
 # fig, ax = plt.subplots()
